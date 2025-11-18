@@ -1,0 +1,34 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  name: Default   # Uses your self-hosted VM agent
+
+steps:
+  - script: |
+      echo "Cleaning existing web directory..."
+      sudo rm -rf /var/www/html/*
+    displayName: 'Clean old files'
+
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)'
+      Contents: '**/*.html'
+      TargetFolder: '/var/www/html/'
+      OverWrite: true
+    displayName: 'Copy website files to Nginx directory'
+
+  - script: |
+      echo "Setting permissions and restarting Nginx..."
+      sudo chown -R $USER:$USER /var/www/html
+      sudo chmod -R 755 /var/www/html
+      sudo systemctl restart nginx
+    displayName: 'Restart Nginx Service'
+
